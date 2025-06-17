@@ -13,6 +13,9 @@ pub enum ApiError {
 
     #[error("Bad Request: {0}")]
     BadRequest(String),
+
+    #[error("Conflict: {0}")]
+    Conflict(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -28,6 +31,7 @@ impl ResponseError for ApiError {
             ApiError::InternalError(_) => (500, self.to_string()),
             ApiError::NotFound(_) => (404, self.to_string()),
             ApiError::BadRequest(_) => (400, self.to_string()),
+            ApiError::Conflict(_) => (400, self.to_string()),
         };
 
         let response = ErrorResponse {
