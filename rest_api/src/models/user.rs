@@ -1,4 +1,4 @@
-use crate::utils::function::object_id_as_string;
+use crate::utils::object_id_as_string;
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
@@ -21,35 +21,46 @@ pub struct User {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct NewUser {
-    pub username: String,
-    pub email: String,
-    pub password: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Login {
-    pub username: String,
-    pub password: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Register {
+pub struct RegisterDTO {
     pub username: String,
     pub email: String,
     pub phone_number: Option<String>,
     pub password: String,
 }
 
-impl From<Register> for User {
-    fn from(register: Register) -> Self {
-        User {
-            id: None,
-            username: register.username,
-            email: register.email,
-            password_hash: String::new(), // nanti isi setelah hash
-            phone_number: register.phone_number,
+#[derive(Debug, Deserialize)]
+pub struct LoginDTO {
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UserResponse {
+    pub id: String,
+    pub username: String,
+    pub email: String,
+    pub phone_number: Option<String>,
+}
+
+impl From<User> for UserResponse {
+    fn from(user: User) -> Self {
+        UserResponse {
+            id: user.id.unwrap_or_default().to_hex(),
+            username: user.username,
+            email: user.email,
+            phone_number: user.phone_number,
         }
     }
 }
 
+impl From<RegisterDTO> for User {
+    fn from(dto: RegisterDTO) -> Self {
+        User {
+            id: None,
+            username: dto.username,
+            email: dto.email,
+            password_hash: String::new(), // nanti diisi setelah hash password
+            phone_number: dto.phone_number,
+        }
+    }
+}
