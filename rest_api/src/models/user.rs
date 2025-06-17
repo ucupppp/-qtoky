@@ -13,8 +13,6 @@ pub struct User {
 
     pub username: String,
     pub email: String,
-
-    #[serde(skip_serializing)] // agar tidak ikut dikirim saat response
     pub password_hash: String,
 
     pub phone_number: Option<String>,
@@ -72,3 +70,4 @@ impl From<RegisterDTO> for User {
         }
     }
 }
+
