@@ -1,0 +1,11 @@
+use actix_web::web;
+
+use super::handler::{get_user_handler, get_users_handler};
+
+pub fn config(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::scope("/users")
+            .route("", web::get().to(get_users_handler))
+            .route("{id}", web::get().to(get_user_handler)),
+    );
+}
