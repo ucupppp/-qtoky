@@ -9,9 +9,11 @@ impl From<ServiceError> for ApiError {
         match error {
             ServiceError::NotFound(msg) => ApiError::NotFound(msg),
             ServiceError::InvalidId(msg) => ApiError::BadRequest(msg),
-            ServiceError::DatabaseError(msg) => ApiError::InternalError(msg),
+            ServiceError::HashingError(msg) | ServiceError::DatabaseError(msg) => {
+                ApiError::InternalError(msg)
+            }
+            ServiceError::Conflict(msg) => ApiError::Conflict(msg),
             ServiceError::Unexpected(msg) => ApiError::InternalError(msg),
         }
     }
 }
-
