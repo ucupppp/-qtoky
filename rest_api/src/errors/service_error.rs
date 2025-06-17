@@ -13,4 +13,10 @@ pub enum ServiceError {
 
     #[error("Unexpected: {0}")]
     Unexpected(String),
+
+    #[error("Hashing Error: {0}")]
+    HashingError(String),
+
+    #[error("Conflict: {0}")]
+    Conflict(String),
 }
