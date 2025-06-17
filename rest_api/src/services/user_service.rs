@@ -1,6 +1,6 @@
 use crate::errors::ServiceError;
 use crate::models::user::{CreateUserDTO, User};
-use crate::utils::{hash_password, string_id_to_obj_id};
+use crate::utils::{handle_duplicate_key_error, hash_password, string_id_to_obj_id};
 use futures::stream::TryStreamExt;
 use mongodb::{Collection, Database, bson::doc};
 
@@ -76,11 +76,10 @@ pub async fn create_user_service(
     match result {
         Ok(_) => Ok(new_user),
         Err(err) => {
-            if err.to_string().contains("E11000") {
-                return Err(ServiceError::Conflict(
-                    "Username atau Email sudah digunakan".to_string(),
-                ));
+            if let Some(conflict_error) = handle_duplicate_key_error(&err) {
+                return Err(conflict_error);
             }
+
             Err(ServiceError::DatabaseError(err.to_string()))
         }
     }

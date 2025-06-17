@@ -14,7 +14,6 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub password_hash: String,
-
     pub phone_number: Option<String>,
 }
 
@@ -70,4 +69,3 @@ impl From<RegisterDTO> for User {
         }
     }
 }
-
