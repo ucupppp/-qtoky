@@ -19,4 +19,7 @@ pub enum ServiceError {
 
     #[error("Conflict: {0}")]
     Conflict(String),
+
+    #[error("Bad Request: {0}")]
+    BadRequest(String),
 }

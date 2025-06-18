@@ -8,7 +8,9 @@ impl From<ServiceError> for ApiError {
     fn from(error: ServiceError) -> Self {
         match error {
             ServiceError::NotFound(msg) => ApiError::NotFound(msg),
-            ServiceError::InvalidId(msg) => ApiError::BadRequest(msg),
+            ServiceError::BadRequest(msg) | ServiceError::InvalidId(msg) => {
+                ApiError::BadRequest(msg)
+            }
             ServiceError::HashingError(msg) | ServiceError::DatabaseError(msg) => {
                 ApiError::InternalError(msg)
             }
