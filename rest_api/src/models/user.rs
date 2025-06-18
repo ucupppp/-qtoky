@@ -34,6 +34,14 @@ pub struct CreateUserDTO {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct UpdateUserDTO {
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub phone_number: Option<String>,
+    pub password: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct LoginDTO {
     pub username: String,
     pub password: String,
