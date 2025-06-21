@@ -1,3 +1,5 @@
+pub mod jwt;
+
 use crate::errors::ServiceError;
 use argon2::{
     Argon2,
