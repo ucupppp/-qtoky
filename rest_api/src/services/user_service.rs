@@ -55,7 +55,11 @@ pub async fn create_user_service(
     let mut password = payload.password.unwrap_or_else(|| "".to_string());
 
     if password.trim().is_empty() {
-        password = username.clone();
+        if username.len() < 6 {
+            password = format!("{}123", username);
+        } else {
+            password = username.clone();
+        }
     }
 
     let hashed_password = hash_password(&password)
@@ -70,7 +74,6 @@ pub async fn create_user_service(
     };
 
     let result = collection.insert_one(&new_user).await;
-
     match result {
         Ok(_) => Ok(new_user),
         Err(err) => {
