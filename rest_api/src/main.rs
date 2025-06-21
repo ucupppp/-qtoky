@@ -10,7 +10,7 @@ mod models;
 mod services;
 mod utils;
 
-use api::users::routes::config as user_routes;
+use api::config as api_routes;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -22,7 +22,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(actix_web::web::Data::new(db_client.clone()))
-            .configure(user_routes)
+            .configure(api_routes)
     })
     .bind(("127.0.0.1", port.parse::<u16>().unwrap()))?
     .run()
