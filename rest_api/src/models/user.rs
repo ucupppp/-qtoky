@@ -1,6 +1,7 @@
 use crate::utils::object_id_as_string;
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -17,33 +18,50 @@ pub struct User {
     pub phone_number: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct RegisterDTO {
+    #[validate(length(min = 3, message = "Username minimal 3 karakter"))]
     pub username: String,
+    #[validate(email(message = "Email tidak valid"))]
     pub email: String,
+    #[validate(length(min = 10, message = "Nomor HP minimal 10 digit"))]
     pub phone_number: Option<String>,
+    #[validate(length(min = 6, message = "Password minimal 6 karakter"))]
     pub password: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct CreateUserDTO {
+    #[validate(length(min = 3, message = "Username minimal 3 karakter"))]
     pub username: String,
+    #[validate(email(message = "Email tidak valid"))]
     pub email: String,
+    #[validate(length(min = 10, message = "Nomor HP minimal 10 digit"))]
     pub phone_number: Option<String>,
+    #[validate(length(min = 6, message = "Password minimal 6 karakter"))]
     pub password: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct UpdateUserDTO {
+    #[validate(length(min = 3, message = "Username minimal 3 karakter"))]
     pub username: Option<String>,
+
+    #[validate(email(message = "Email tidak valid"))]
     pub email: Option<String>,
+
+    #[validate(length(min = 10, message = "Nomor HP minimal 10 digit"))]
     pub phone_number: Option<String>,
+
+    #[validate(length(min = 6, message = "Password minimal 6 karakter"))]
     pub password: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct LoginDTO {
+    #[validate(length(min = 3, message = "Username minimal 3 karakter"))]
     pub username: String,
+    #[validate(length(min = 6, message = "Password minimal 6 karakter"))]
     pub password: String,
 }
 
