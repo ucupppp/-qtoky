@@ -29,7 +29,7 @@ pub async fn get_user_service(id: &str, db: &Database) -> Result<User, ServiceEr
     let collection: Collection<User> = db.collection("users");
 
     let object_id = match string_id_to_obj_id(id) {
-        Some(user_id) => user_id,
+        Some(oid) => oid,
         None => return Err(ServiceError::InvalidId("Invalid ID".into())),
     };
 
@@ -133,7 +133,27 @@ pub async fn update_user_service(
         .find_one(doc! { "_id": object_id })
         .await
         .map_err(|e| ServiceError::DatabaseError(e.to_string()))?
-        .ok_or_else(|| ServiceError::NotFound("User tidak ditemukan".to_string()))?;
+        .ok_or_else(|| ServiceError::NotFound("User tidak ditemukan!".to_string()))?;
 
     Ok(updated_user)
+}
+
+pub async fn delete_user_service(id: &str, db: &Database) -> Result<bool, ServiceError> {
+    let object_id = match string_id_to_obj_id(id) {
+        Some(oid) => oid,
+        None => return Err(ServiceError::InvalidId("Invalid ID".into())),
+    };
+
+    let collection: Collection<User> = db.collection("users");
+
+    let result = collection
+        .delete_one(doc! {"_id": object_id})
+        .await
+        .map_err(|err| ServiceError::DatabaseError(err.to_string()))?;
+
+    if result.deleted_count == 0 {
+        return Err(ServiceError::NotFound("User tidak ditemukan!".into()));
+    }
+
+    Ok(true)
 }
