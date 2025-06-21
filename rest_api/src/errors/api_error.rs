@@ -20,6 +20,9 @@ pub enum ApiError {
 
     #[error("ValidationError: {0}")]
     ValidationError(String),
+
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -37,6 +40,7 @@ impl ResponseError for ApiError {
             ApiError::BadRequest(_) => (400, self.to_string()),
             ApiError::Conflict(_) => (409, self.to_string()),
             ApiError::ValidationError(_) => (422, self.to_string()),
+            ApiError::Unauthorized(_) => (401, self.to_string()),
         };
 
         let response = ErrorResponse {

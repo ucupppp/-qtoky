@@ -16,6 +16,7 @@ impl From<ServiceError> for ApiError {
             }
             ServiceError::Conflict(msg) => ApiError::Conflict(msg),
             ServiceError::Unexpected(msg) => ApiError::InternalError(msg),
+            ServiceError::Unauthorized(msg) => ApiError::Unauthorized(msg),
         }
     }
 }
