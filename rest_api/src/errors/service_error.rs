@@ -22,4 +22,7 @@ pub enum ServiceError {
 
     #[error("Bad Request: {0}")]
     BadRequest(String),
+
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
 }
