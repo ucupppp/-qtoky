@@ -3,7 +3,7 @@ use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(
         rename = "_id",
