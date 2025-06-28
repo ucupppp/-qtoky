@@ -1,5 +1,5 @@
 // main.rs
-use actix_web::{App, HttpServer};
+use actix_web::{App, HttpServer, middleware::Logger};
 
 mod api;
 mod config;
@@ -18,9 +18,15 @@ async fn main() -> std::io::Result<()> {
     let port = std::env::var("PORT").unwrap_or("7878".to_string());
 
     let db_client = db::mongo::init_db().await.expect("Failed to initialize db");
-
+    unsafe {
+        std::env::set_var("RUST_LOG", "info");
+        std::env::set_var("RUST_BACKTRACE", "1");
+        env_logger::init();
+    }
     HttpServer::new(move || {
+        let logger = Logger::default();
         App::new()
+            .wrap(logger)
             .app_data(actix_web::web::Data::new(db_client.clone()))
             .configure(api_routes)
     })
