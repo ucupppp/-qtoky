@@ -1,11 +1,11 @@
 use crate::{
     errors::ApiError,
-    models::user::{LoginDTO, UserResponse},
-    services::auth_service::login_service,
+    models::user::{LoginDTO, RegisterDTO, UserResponse},
+    services::auth_service::{login_service, register_service},
     utils::jwt::{Claims, create_auth_cookie, create_csrf_cookie, encode_jwt, generate_csrf_token},
 };
 use actix_web::{
-    HttpResponse, Result,
+    Error as ActixError, HttpResponse, Result,
     web::{Data, Json},
 };
 use mongodb::Database;
@@ -13,14 +13,10 @@ use serde_json::json;
 use validator::Validate;
 
 pub async fn login_handler(
-    payload: Option<Json<LoginDTO>>,
+    payload: Result<Json<LoginDTO>, ActixError>,
     db: Data<Database>,
 ) -> Result<HttpResponse, ApiError> {
-    // Validasi login
-    let Some(json_payload) = payload else {
-        return Err(ApiError::BadRequest("Body tidak boleh kosong".into()));
-    };
-    let data = json_payload.into_inner();
+    let data = payload?.into_inner();
     data.validate()?;
     let user = login_service(data, &db).await?;
     let user_response: UserResponse = user.clone().into();
@@ -46,7 +42,22 @@ pub async fn login_handler(
         .cookie(csrf_cookie)
         .json(json!({
             "status": "success",
-            "message": "Login berhasil",
             "data": user_response,
+            "code":200
         })))
+}
+
+pub async fn register_handler(
+    payload: Result<Json<RegisterDTO>, ActixError>,
+    db: Data<Database>,
+) -> Result<HttpResponse, ApiError> {
+    let data = payload?.into_inner();
+    data.validate()?;
+    let user = register_service(data, &db).await?;
+
+    Ok(HttpResponse::Created().json(json!({
+        "status": "success",
+        "data": user,
+        "code": 201
+    })))
 }
