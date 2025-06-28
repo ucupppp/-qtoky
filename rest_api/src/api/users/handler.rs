@@ -5,9 +5,10 @@ use crate::services::user_service::{
     update_user_service,
 };
 use actix_web::{
-    HttpResponse, Result,
+    Error as ActixError, HttpResponse, Result,
     web::{Data, Json, Path},
 };
+
 use mongodb::Database;
 use validator::Validate;
 
@@ -39,13 +40,10 @@ pub async fn get_users_handler(db: Data<Database>) -> Result<HttpResponse, ApiEr
 }
 
 pub async fn post_user_handler(
-    payload: Option<Json<CreateUserDTO>>,
+    payload: Result<Json<CreateUserDTO>, ActixError>,
     db: Data<Database>,
 ) -> Result<HttpResponse, ApiError> {
-    let Some(json_payload) = payload else {
-        return Err(ApiError::BadRequest("Body tidak boleh kosong".into()));
-    };
-    let data = json_payload.into_inner();
+    let data = payload?.into_inner();
     data.validate()?;
     let new_user = create_user_service(data, &db).await?;
     let user_response: UserResponse = new_user.into();
@@ -60,16 +58,12 @@ pub async fn post_user_handler(
 
 pub async fn patch_user_handler(
     path: Path<String>,
-    payload: Option<Json<UpdateUserDTO>>,
+    payload: Result<Json<UpdateUserDTO>, ActixError>,
     db: Data<Database>,
 ) -> Result<HttpResponse, ApiError> {
     let user_id = path.into_inner();
 
-    let Some(json_payload) = payload else {
-        return Err(ApiError::BadRequest("Body tidak boleh kosong".into()));
-    };
-
-    let data = json_payload.into_inner();
+    let data = payload?.into_inner();
     data.validate()?;
     // Validasi semua field kosong atau berisi string kosong
     let no_fields = data
@@ -114,7 +108,7 @@ pub async fn delete_user_handler(
     db: Data<Database>,
 ) -> Result<HttpResponse, ApiError> {
     let user_id = path.into_inner();
-    let delete_user = delete_user_service(&user_id, &db).await?;
+    let _delete_user = delete_user_service(&user_id, &db).await?;
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "status": "success",
         "code": 204
