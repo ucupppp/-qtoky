@@ -1,6 +1,9 @@
 pub mod jwt;
+use nanoid::nanoid;
 
 use crate::errors::ServiceError;
+use crate::utils::jwt::{decode_jwt, is_jwt_expired};
+use actix_web::HttpRequest;
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
@@ -9,7 +12,14 @@ use bson::oid::ObjectId;
 use mongodb::error::{Error, ErrorKind, WriteFailure};
 use serde::Serializer;
 
-pub fn object_id_as_string<S>(id: &Option<ObjectId>, serializer: S) -> Result<S::Ok, S::Error>
+pub fn object_id_as_string<S>(id: &ObjectId, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&id.to_hex())
+}
+
+pub fn opt_object_id_as_string<S>(id: &Option<ObjectId>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -68,4 +78,26 @@ fn extract_duplicate_field(message: &str) -> Option<String> {
     re.captures(message)
         .and_then(|caps| caps.get(1))
         .map(|m| m.as_str().to_string())
+}
+
+/// Generate SKU otomatis, contoh: "SKU-X7D2F"
+pub fn generate_random_sku() -> String {
+    format!("SKU-{}", nanoid!(5).to_uppercase())
+}
+
+/// Ekstrak user_id dari cookie JWT
+pub fn extract_user_id_from_cookie(req: &HttpRequest) -> Result<String, ServiceError> {
+    let cookie = req
+        .cookie("auth_token")
+        .ok_or_else(|| ServiceError::Unauthorized("Token tidak ditemukan".into()))?;
+
+    let token = cookie.value();
+
+    let decoded =
+        decode_jwt(&token).map_err(|_| ServiceError::Unauthorized("Token tidak valid".into()))?;
+
+    if is_jwt_expired(decoded.claims.exp) {
+        return Err(ServiceError::Unauthorized("Token sudah expired".into()));
+    }
+    Ok(decoded.claims.sub) // atau decoded.claims.user_id
 }
