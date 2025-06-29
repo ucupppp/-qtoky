@@ -1,4 +1,4 @@
-use crate::utils::object_id_as_string;
+use crate::utils::opt_object_id_as_string;
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -8,7 +8,7 @@ pub struct User {
     #[serde(
         rename = "_id",
         skip_serializing_if = "Option::is_none",
-        serialize_with = "object_id_as_string"
+        serialize_with = "opt_object_id_as_string"
     )]
     pub id: Option<ObjectId>,
 
@@ -76,7 +76,10 @@ pub struct UserResponse {
 impl From<User> for UserResponse {
     fn from(user: User) -> Self {
         UserResponse {
-            id: user.id.unwrap_or_default().to_hex(),
+            id: user
+                .id
+                .expect("User.id harus ada setelah input data")
+                .to_hex(),
             username: user.username,
             email: user.email,
             phone_number: user.phone_number,
