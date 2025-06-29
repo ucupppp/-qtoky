@@ -1,4 +1,5 @@
 use actix_web::cookie::{Cookie, SameSite};
+use chrono::Utc;
 use jsonwebtoken::{
     DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode,
     errors::Error as JwtError,
@@ -30,6 +31,12 @@ pub fn decode_jwt(token: &str) -> Result<TokenData<Claims>, JwtError> {
         &DecodingKey::from_secret(SECRET.as_bytes()),
         &Validation::default(),
     )
+}
+
+/// Mengecek apakah token sudah expired berdasarkan `exp` dalam UNIX timestamp
+pub fn is_jwt_expired(exp: usize) -> bool {
+    let now = Utc::now().timestamp() as usize;
+    exp < now
 }
 
 pub fn create_auth_cookie(token: &str) -> Cookie<'_> {
