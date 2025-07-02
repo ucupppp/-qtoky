@@ -1,6 +1,7 @@
 use crate::errors::ServiceError;
-use crate::models::product::{Product, ProductDTO};
+use crate::models::product::{Product, ProductDTO, UpdateProductDTO};
 use crate::utils::{generate_random_sku, handle_duplicate_key_error, string_id_to_obj_id};
+use bson::datetime::DateTime as BsonDateTime;
 
 use bson::oid::ObjectId;
 use chrono::Utc;
@@ -33,7 +34,7 @@ pub async fn get_products_service(db: &Database, id: &str) -> Result<Vec<Product
 }
 
 pub async fn create_product_service(
-    dto: ProductDTO,
+    payload: ProductDTO,
     db: &Database,
     id: &str,
 ) -> Result<Product, ServiceError> {
@@ -46,7 +47,7 @@ pub async fn create_product_service(
 
     // Pakai SKU dari input, atau generate otomatis jika kosong
 
-    let final_sku = match &dto.sku {
+    let final_sku = match &payload.sku {
         Some(sku) if !sku.trim().is_empty() => sku.clone(),
         _ => generate_random_sku(),
     };
@@ -57,12 +58,15 @@ pub async fn create_product_service(
     let mut product = Product {
         id: None,
         user_id: user_id,
-        name: dto.name,
+        name: payload.name,
         sku: final_sku,
-        price: dto.price,
-        stock: dto.stock,
-        category_id: dto.category_id.and_then(|id| ObjectId::parse_str(&id).ok()),
+        price: payload.price,
+        stock: payload.stock,
+        category_id: payload
+            .category_id
+            .and_then(|id| ObjectId::parse_str(&id).ok()),
         created_at: Some(now),
+        updated_at: Some(now),
     };
 
     // Insert ke database
@@ -83,4 +87,63 @@ pub async fn create_product_service(
             Err(ServiceError::DatabaseError(e.to_string()))
         }
     }
+}
+
+pub async fn update_product_service(
+    id: &str,
+    payload: UpdateProductDTO,
+    db: &Database,
+) -> Result<Product, ServiceError> {
+    let object_id = match string_id_to_obj_id(id) {
+        Some(oid) => oid,
+        None => return Err(ServiceError::InvalidId("Invalid ID".into())),
+    };
+
+    let mut update_doc = doc! {};
+
+    if let Some(name) = payload.name {
+        update_doc.insert("name", name);
+    }
+    if let Some(sku) = payload.sku {
+        update_doc.insert("sku", sku);
+    }
+    if let Some(price) = payload.price {
+        update_doc.insert("price", price);
+    }
+    if let Some(stock) = payload.stock {
+        update_doc.insert("stock", stock);
+    }
+    if let Some(category_id) = payload.category_id {
+        update_doc.insert("category_id", category_id);
+    }
+
+    if update_doc.is_empty() {
+        return Err(ServiceError::BadRequest(
+            "Tidak ada data untuk di-update".to_string(),
+        ));
+    }
+
+    let now = Utc::now();
+
+    update_doc.insert("updated_at", BsonDateTime::from_chrono(now));
+
+    let collection: Collection<Product> = db.collection("products");
+
+    collection
+        .update_one(doc! { "_id": object_id }, doc! { "$set": update_doc })
+        .await
+        .map_err(|err| {
+            if let Some(conflict_error) = handle_duplicate_key_error(&err) {
+                return conflict_error;
+            }
+            ServiceError::DatabaseError(err.to_string())
+        })?;
+
+    let updated_product = collection
+        .find_one(doc! { "_id": object_id })
+        .await
+        .map_err(|e| ServiceError::DatabaseError(e.to_string()))?
+        .ok_or_else(|| ServiceError::NotFound("Product tidak ditemukan!".to_string()))?;
+
+    Ok(updated_product)
 }
