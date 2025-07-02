@@ -23,6 +23,8 @@ pub struct Product {
 
     #[serde(default)]
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[serde(default)]
+    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -53,6 +55,8 @@ pub struct UpdateProductDTO {
 
     #[validate(range(min = 100, message = "Harga minimal 100"))]
     pub price: Option<u32>,
+
+    pub category_id: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -68,6 +72,7 @@ pub struct ProductResponse {
 
     pub category_id: Option<String>,
     pub created_at: Option<String>,
+    pub updated_at: Option<String>,
 }
 
 impl From<Product> for ProductResponse {
@@ -84,7 +89,7 @@ impl From<Product> for ProductResponse {
             stock: p.stock,
             category_id: p.category_id.map(|c| c.to_hex()),
             created_at: p.created_at.map(|t| t.to_rfc3339()),
+            updated_at: p.updated_at.map(|t| t.to_rfc3339()),
         }
     }
 }
-
