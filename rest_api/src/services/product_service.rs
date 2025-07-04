@@ -52,7 +52,7 @@ pub async fn create_product_service(
         _ => generate_random_sku(),
     };
 
-    let now = Utc::now();
+    let now = BsonDateTime::from_chrono(Utc::now());
 
     // Buat produk baru (sementara id None dulu)
     let mut product = Product {
@@ -129,8 +129,7 @@ pub async fn update_product_service(
         ));
     }
 
-    let now = Utc::now();
-    update_doc.insert("updated_at", now.to_rfc3339());
+    update_doc.insert("updated_at", BsonDateTime::from_chrono(Utc::now()));
 
     println!("{:?}", &update_doc);
 
