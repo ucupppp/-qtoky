@@ -1,6 +1,5 @@
 use crate::utils::{object_id_as_string, opt_object_id_as_string};
 use bson::oid::ObjectId;
-use chrono;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -22,9 +21,9 @@ pub struct Product {
     pub category_id: Option<ObjectId>,
 
     #[serde(default)]
-    pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub created_at: Option<bson::DateTime>,
     #[serde(default)]
-    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub updated_at: Option<bson::DateTime>,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -88,8 +87,8 @@ impl From<Product> for ProductResponse {
             price: p.price,
             stock: p.stock,
             category_id: p.category_id.map(|c| c.to_hex()),
-            created_at: p.created_at.map(|t| t.to_rfc3339()),
-            updated_at: p.updated_at.map(|t| t.to_rfc3339()),
+            created_at: p.created_at.map(|t| t.to_chrono().to_rfc3339()),
+            updated_at: p.updated_at.map(|t| t.to_chrono().to_rfc3339()),
         }
     }
 }
