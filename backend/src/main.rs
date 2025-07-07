@@ -1,16 +1,16 @@
 // main.rs
 use actix_web::{App, HttpServer, middleware::Logger};
 
-mod api;
 mod config;
 mod db;
 mod errors;
 mod middlewares;
 mod models;
+mod rest;
 mod services;
 mod utils;
 
-use api::config as api_routes;
+use rest::config as rest_api_routes;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -28,7 +28,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(logger)
             .app_data(actix_web::web::Data::new(db_client.clone()))
-            .configure(api_routes)
+            .configure(rest_api_routes)
     })
     .bind(("127.0.0.1", port.parse::<u16>().unwrap()))?
     .run()
