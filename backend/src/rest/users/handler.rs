@@ -23,7 +23,8 @@ pub async fn get_user_handler(
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "status": "success",
-        "data": user_response
+        "data": user_response,
+        "code" : 200
     })))
 }
 
