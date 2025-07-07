@@ -13,6 +13,7 @@ pub async fn get_products_service(db: &Database, id: &str) -> Result<Vec<Product
         Some(oid) => oid,
         None => return Err(ServiceError::InvalidId("Invalid ID".into())),
     };
+
     let collection: Collection<Product> = db.collection("products");
 
     let mut cursor = collection
@@ -20,17 +21,54 @@ pub async fn get_products_service(db: &Database, id: &str) -> Result<Vec<Product
         .await
         .map_err(|e| ServiceError::DatabaseError(e.to_string()))?;
 
-    let mut users: Vec<Product> = Vec::new();
+    let mut products: Vec<Product> = Vec::new();
 
-    while let Some(user) = cursor
+    while let Some(product) = cursor
         .try_next()
         .await
         .map_err(|e| ServiceError::DatabaseError(e.to_string()))?
     {
-        users.push(user);
+        println!("{:?}", &product);
+        products.push(product);
     }
 
-    Ok(users)
+    Ok(products)
+}
+
+pub async fn get_product_service(
+    product_id: &str,
+    db: &Database,
+    user_id: &str,
+) -> Result<Product, ServiceError> {
+    let user_id = match string_id_to_obj_id(user_id) {
+        Some(oid) => oid,
+        None => return Err(ServiceError::InvalidId("Invalid ID".into())),
+    };
+
+    let product_id = match string_id_to_obj_id(product_id) {
+        Some(oid) => oid,
+        None => return Err(ServiceError::InvalidId("Invalid ID".into())),
+    };
+
+    let collection: Collection<Product> = db.collection("products");
+
+    // Tambahkan filter user_id di sini
+    let filter = doc! {
+        "_id": product_id,
+        "user_id": user_id,
+    };
+
+    let product = collection
+        .find_one(filter)
+        .await
+        .map_err(|e| ServiceError::DatabaseError(e.to_string()))?;
+
+    product.ok_or_else(|| {
+        ServiceError::NotFound(format!(
+            "Product dengan ID '{}' tidak ditemukan",
+            product_id
+        ))
+    })
 }
 
 pub async fn create_product_service(
@@ -95,12 +133,12 @@ pub async fn update_product_service(
     db: &Database,
     user_id: &str,
 ) -> Result<Product, ServiceError> {
-    let object_id = match string_id_to_obj_id(product_id) {
+    let product_id = match string_id_to_obj_id(product_id) {
         Some(oid) => oid,
         None => return Err(ServiceError::InvalidId("Invalid product ID".into())),
     };
 
-    let user_object_id = match string_id_to_obj_id(user_id) {
+    let user_id = match string_id_to_obj_id(user_id) {
         Some(oid) => oid,
         None => return Err(ServiceError::InvalidId("Invalid user ID".into())),
     };
@@ -137,8 +175,8 @@ pub async fn update_product_service(
 
     // Tambahkan filter user_id di sini
     let filter = doc! {
-        "_id": object_id,
-        "user_id": user_object_id,
+        "_id": product_id,
+        "user_id": user_id,
     };
 
     let update_result = collection
@@ -171,4 +209,38 @@ pub async fn update_product_service(
     println!("{:?}", &updated_product);
 
     Ok(updated_product)
+}
+
+pub async fn delete_product_service(
+    product_id: &str,
+    db: &Database,
+    user_id: &str,
+) -> Result<bool, ServiceError> {
+    let product_id = match string_id_to_obj_id(product_id) {
+        Some(oid) => oid,
+        None => return Err(ServiceError::InvalidId("Invalid ID".into())),
+    };
+    let user_id = match string_id_to_obj_id(user_id) {
+        Some(oid) => oid,
+        None => return Err(ServiceError::InvalidId("Invalid ID".into())),
+    };
+
+    let collection: Collection<Product> = db.collection("products");
+
+    // Tambahkan filter user_id di sini
+    let filter = doc! {
+        "_id": product_id,
+        "user_id": user_id,
+    };
+
+    let result = collection
+        .delete_one(filter)
+        .await
+        .map_err(|err| ServiceError::DatabaseError(err.to_string()))?;
+
+    if result.deleted_count == 0 {
+        return Err(ServiceError::NotFound("Product tidak ditemukan!".into()));
+    }
+
+    Ok(true)
 }
