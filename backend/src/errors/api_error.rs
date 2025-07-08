@@ -1,4 +1,4 @@
-// src/errors/error.rs
+// src/errors/api_error.rs
 use actix_web::{
     Error as ActixError, HttpResponse, ResponseError,
     error::{JsonPayloadError, PayloadError, QueryPayloadError, UrlencodedError},
