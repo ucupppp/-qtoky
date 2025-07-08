@@ -1,5 +1,5 @@
-use crate::utils::{object_id_as_string, opt_object_id_as_string};
-use bson::oid::ObjectId;
+use crate::utils::opt_object_id_as_string;
+use bson::{DateTime, oid::ObjectId};
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -14,16 +14,16 @@ pub struct Product {
     pub user_id: ObjectId,
     pub name: String,
     pub sku: String,
-    pub price: u32,
+    pub price: f64,
     pub stock: u32,
 
     #[serde(serialize_with = "opt_object_id_as_string")]
     pub category_id: Option<ObjectId>,
 
     #[serde(default)]
-    pub created_at: Option<bson::DateTime>,
+    pub created_at: Option<DateTime>,
     #[serde(default)]
-    pub updated_at: Option<bson::DateTime>,
+    pub updated_at: Option<DateTime>,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -32,8 +32,8 @@ pub struct ProductDTO {
     pub name: String,
     pub sku: Option<String>,
 
-    #[validate(range(min = 100, message = "Harga minimal 100"))]
-    pub price: u32,
+    #[validate(range(min = 100.0, message = "Harga minimal 100"))]
+    pub price: f64,
 
     #[validate(range(max = 99999, message = "Stok maksimal 99999"))]
     pub stock: u32,
@@ -52,8 +52,8 @@ pub struct UpdateProductDTO {
     #[validate(range(max = 99999, message = "Stok maksimal 99999"))]
     pub stock: Option<u32>,
 
-    #[validate(range(min = 100, message = "Harga minimal 100"))]
-    pub price: Option<u32>,
+    #[validate(range(min = 100.0, message = "Harga minimal 100"))]
+    pub price: Option<f64>,
 
     pub category_id: Option<String>,
 }
@@ -66,7 +66,7 @@ pub struct ProductResponse {
 
     pub name: String,
     pub sku: String,
-    pub price: u32,
+    pub price: f64,
     pub stock: u32,
 
     pub category_id: Option<String>,
