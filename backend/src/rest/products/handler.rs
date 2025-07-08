@@ -17,7 +17,6 @@ pub async fn get_products_handler(
     req: HttpRequest,
     db: Data<Database>,
 ) -> Result<HttpResponse, ApiError> {
-    println!("{:?}", req);
     let user_id_str = extract_user_id_from_cookie(&req)?;
     let products = get_products_service(&db, &user_id_str).await?;
 
