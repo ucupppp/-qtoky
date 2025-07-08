@@ -28,7 +28,6 @@ pub async fn get_products_service(db: &Database, id: &str) -> Result<Vec<Product
         .await
         .map_err(|e| ServiceError::DatabaseError(e.to_string()))?
     {
-        println!("{:?}", &product);
         products.push(product);
     }
 
@@ -169,8 +168,6 @@ pub async fn update_product_service(
 
     update_doc.insert("updated_at", BsonDateTime::from_chrono(Utc::now()));
 
-    println!("{:?}", &update_doc);
-
     let collection: Collection<Product> = db.collection("products");
 
     // Tambahkan filter user_id di sini
@@ -189,8 +186,6 @@ pub async fn update_product_service(
             ServiceError::DatabaseError(err.to_string())
         })?;
 
-    println!("{:?}", &update_result);
-
     if update_result.matched_count == 0 {
         return Err(ServiceError::NotFound(
             "Produk tidak ditemukan atau tidak dimiliki oleh user ini".to_string(),
@@ -200,13 +195,8 @@ pub async fn update_product_service(
     let updated_product = collection
         .find_one(filter)
         .await
-        .map_err(|e| {
-            println!("{:?}", e);
-            ServiceError::DatabaseError(e.to_string())
-        })?
+        .map_err(|e| ServiceError::DatabaseError(e.to_string()))?
         .ok_or_else(|| ServiceError::NotFound("Produk tidak ditemukan!".to_string()))?;
-
-    println!("{:?}", &updated_product);
 
     Ok(updated_product)
 }
