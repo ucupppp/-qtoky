@@ -11,3 +11,5 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(products::routes::config),
     );
 }
+
+
