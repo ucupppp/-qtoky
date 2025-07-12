@@ -1,7 +1,7 @@
 // src/errors/api_error.rs
 use actix_web::{
     Error as ActixError, HttpResponse, ResponseError,
-    error::{JsonPayloadError, PayloadError, QueryPayloadError, UrlencodedError},
+    error::{JsonPayloadError, PayloadError, UrlencodedError},
     http::StatusCode,
 };
 use serde::Serialize;
@@ -125,7 +125,7 @@ impl From<ActixError> for ApiError {
 
                 _ => ApiError::BadRequest("Permintaan tidak dapat dibaca".into()),
             }
-        } else if let Some(form_err) = err.as_error::<UrlencodedError>() {
+        } else if let Some(_form_err) = err.as_error::<UrlencodedError>() {
             ApiError::BadRequest("Format form tidak valid".into())
         } else {
             ApiError::InternalError("Terjadi kesalahan internal saat memproses permintaan".into())

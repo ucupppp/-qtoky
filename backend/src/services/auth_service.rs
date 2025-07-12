@@ -1,7 +1,7 @@
 use crate::errors::ServiceError;
 use crate::models::user::{LoginDTO, RegisterDTO, User};
 use crate::utils::{
-    handle_duplicate_key_error, hash_password, string_id_to_obj_id, verify_password,
+    handle_duplicate_key_error, hash_password, verify_password,
 };
 use mongodb::{Collection, Database, bson::doc};
 
